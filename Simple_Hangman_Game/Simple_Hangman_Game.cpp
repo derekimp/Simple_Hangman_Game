@@ -2,6 +2,10 @@
 //
 
 #include <iostream>
+#include <string>
+#include <vector>
+#include <time.h>
+#include <fstream>
 using namespace std;
 
 void printMessage(string msg, bool printTop = true, bool printBot = true) {
@@ -45,10 +49,11 @@ void printMan(int curPoint) {
         printMessage("/| ", false, false);
     if (curPoint >= 6)
         printMessage("/|\\", false, false);
-
-    if (curPoint == 7)
+    if (curPoint >= 7)
+        printMessage("|", false, false);
+    if (curPoint == 8)
         printMessage("/  ", false, false);
-    if (curPoint >= 8)
+    if (curPoint >= 9)
         printMessage("/ \\", false, false);
 
 }
@@ -99,24 +104,81 @@ bool printWordCheckWin(string right, string guess) {
     return won;
 }
 
+string loadRandomWords(string path) {
+    srand(time(0));
+    int lineCount = 0;
+    string word;
+    vector<string> v;
+    ifstream reader(path);
+    if (reader.is_open()) {
+        while (getline(reader, word))
+            v.push_back(word);
+        int randomLine = rand() % v.size();
+
+        word = v.at(randomLine);
+        reader.close();
+    }
+    return word;
+}
+
+int triesLeft(string word, string guess) {
+    int error = 0;
+    for (int i = 0; i < guess.size();i++) {
+        if (word.find(guess[i]) == word.npos) {
+            error++;
+        }
+    }
+    return error;
+}
+
 int main()
 {
-    string guess = "ABSKKLL";
-    printMessage("Hang Man");
-    printMan(5);
-    printUsed(guess);
-    printMessage("Guess the word!", false, true);
-    printWordCheckWin("ALEXK", guess);
+    string guess ;
+    string wordToGuess = loadRandomWords("words.txt");
+    bool won = false;
+    int tries = 0;
+    do {
+        system("cls");
+        printMessage("Hang Man");
+        printMan(tries);
+        printUsed(guess);
+        printMessage("Guess the word!", false, true);
+        won = printWordCheckWin(wordToGuess, guess);
+
+        if (won)
+            break;
+
+        char x;
+        cout << ">";
+        cin >> x;
+        if (guess.find(x) == guess.npos)
+            guess += x;
+
+        tries = triesLeft(wordToGuess, guess);
+
+    } while (tries < 10);
+    if (won)
+        printMessage("You Won");
+    else
+        printMessage("Game Over");
+    
+    system("pause");
     return 0;
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+/*
++---------------------------------+
+|             Hang Man            |
++---------------------------------+
+|                |                |
++---------------------------------+
+|      B C D   F G H I J   L M    |
+|    N O P Q R S   U V   X Y Z    |
++---------------------------------+
+|         Guess the word!         |
++---------------------------------+
+|             K A T E             |
++---------------------------------+
++---------------------------------+
+|             You Won             |
++---------------------------------+*/
